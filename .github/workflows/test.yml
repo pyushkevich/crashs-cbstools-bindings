@@ -1,0 +1,42 @@
+# Lightweight regression test for the GraalVM-native cbstools bindings.
+# Runs on Linux only - not the full wheel-build matrix (see build_wheels.yml for that) -
+# to catch breakage quickly whenever native/ or src/crashs_cbstools_bindings/ changes.
+name: Native bindings test
+
+on:
+  pull_request:
+    paths:
+      - 'native/**'
+      - 'src/crashs_cbstools_bindings/**'
+      - 'tests/test_bindings.py'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+
+      - name: Build native library
+        run: bash native/scripts/build_native.sh ubuntu-latest
+
+      - name: Stage native artifact into the package (dev-mode, mirrors CMake install)
+        run: |
+          mkdir -p src/crashs_cbstools_bindings/_native_lib src/crashs_cbstools_bindings/_native_data
+          cp native/build/out/libcbstools_native.so src/crashs_cbstools_bindings/_native_lib/
+          cp -r native/data/topology_lut src/crashs_cbstools_bindings/_native_data/
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install numpy pytest
+
+      - run: PYTHONPATH=src python -m pytest tests/test_bindings.py -v
