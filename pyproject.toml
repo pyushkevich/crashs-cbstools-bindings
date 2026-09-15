@@ -16,7 +16,7 @@ CBSTOOLS_NATIVE_BUILD_DIR = {env = "CBSTOOLS_NATIVE_BUILD_DIR", default = ""}
 
 [project]
 name = "crashs-cbstools-bindings"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
   { name="Paul Yushkevich", email="pyushkevich@gmail.com" },
 ]
